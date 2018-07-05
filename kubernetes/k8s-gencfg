@@ -12,11 +12,15 @@ def parse_file(args, input_file, output_file):
     with open(input_file) as file:
         input_data = file.read()
 
-    # IMAGE_SECRET is an optional argument
-    # ~ means null in yaml
     output_data = input_data.replace("{{IMAGE_PATH}}", args.image_path) \
-                  .replace("{{IMAGE_TAG}}", args.image_tag) \
-                  .replace("{{IMAGE_SECRET}}", args.image_secret if (args.image_secret != None) else "~") 
+                  .replace("{{IMAGE_TAG}}", args.image_tag) 
+
+    # IMAGE_SECRET is an optional argument
+    # but we don't want an empty value if the argument isn't provided
+    # so only add the field if the argument was provided
+    if (args.image_secret != None) and (output_file.endswith('-depl.yaml')):
+        output_data += '      imagePullSecrets:\n' \
+                       '      - name: %s' % args.image_secret 
 
     with open(output_file, "w") as file:
         file.write(output_data)
